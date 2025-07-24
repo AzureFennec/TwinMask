@@ -5,7 +5,8 @@ This application is designed to create and update Excel files for character shee
 ## Usage
 
 Pre-built executable releases are available under the **Releases** tab on this GitHub repository.  
-Download the latest release to start using the application without any setup.
+Download the latest release to start using the application without any setup. For feedback and bug reports, contact me via email(fennecazure@gmail.com) or
+discord(@AzureFenn).
 
 ## Alternative: Simple Character Planner
 
