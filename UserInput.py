@@ -108,6 +108,12 @@ def ValidateSelection(self,choice): # passes two class instances- self(for manag
 
 def TestSelection(self,choice): # checks if there are prerequisites for the chosen skill, rejects in case of failure
     skillref=skills[choice.page][choice.cat][choice.skill]
+    if choice.cat=='memory flaws':
+        if choices['background']['memory flaws']=={}:
+            pass
+        else:
+            ErrorPopup(self,message='You can only select one memory flaw.')
+            return
     if 'Prereq' in skillref.keys():
         prereqdict=skillref['Prereq']
 
