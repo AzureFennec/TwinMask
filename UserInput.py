@@ -156,9 +156,15 @@ def TestSelection(self,choice): # checks if there are prerequisites for the chos
                     message='You must have a religion to take Religous Zeal.'
                     ErrorPopup(self,message)
             else:
-                print('missing special test')
+                ErrorPopup(self,message='Error- special test was set but no prereq test is detected.')
+
+        elif prereqdict['Desc']=='NBD':
+            if prereqdict['Check'](choices['details']['Bloodline']) is True:
+                BuildSelection(self, choice)
+            else:
+                ErrorPopup(self,message=f'Newborn Dreams cannot take {choice.skill}')
         else: 
-            print('missing test')
+            ErrorPopup(self,message='Error- prereq was set but no prereq test is detected.')
     else:
         BuildSelection(self,choice)
 
@@ -169,7 +175,6 @@ def BuildSelection(self,choice): # builds a dictionary to track the values of th
 
 def DisplaySelection(window, row, column):
     dict_data = choices[window.page]
-    print(dict_data)
 
     # Use scrollable_frame only if page is 'General Skills'
     if window.page == 'General Skills' and hasattr(window, 'scrollable_frame'):
@@ -497,9 +502,9 @@ class NewCharacter(tk.Frame):
             dict['Religion'] = religion
             dict['Character'] = character
             dict['Bloodline'] = bloodline
-            print(dict)
+ 
             if bloodline=='Newborn Dream':
-                print('ffffffffff')
+
                 dic={'Tethered':{'Quant':1,'Cost':-10,'Level':None}}
                 choices['background']['flaws']=dic
                 allchoices=dic
@@ -1159,9 +1164,9 @@ class ReviewChoices(tk.Frame):
         self.scrollable_frame = scrollable_frame
 
     def DisplayAllChoices(self):
-        print('\n\ncumaflum\n\n')
+
         global choices
-        print(choices)
+
         row = 1  # Start from row 1
         max_columns = 1  # Track the longest column span for consistent separators
 
@@ -1231,6 +1236,7 @@ class ReviewChoices(tk.Frame):
         choices['Knowledge']['Native Lore'][f"Native Lore: {choices['details']['Culture']}"]={'Quant':1,'Cost':0,'Level':None,'Cat':'Knowledge'}
         filepath = filedialog.asksaveasfilename(defaultextension=".xlsx",
                                         filetypes=[("Excel files", "*.xlsx")])
+
         process_choices(choices, filepath)
 
 class ChoosePrefix(tk.Frame): 
