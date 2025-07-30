@@ -274,10 +274,9 @@ def clear_sheet(wb,ws1):
 def generate_progression(dict,wb):
 
     ws2=wb.create_sheet('Progression')
-    print(dict)
+
     race=dict['details']['bloodline']  
-    
-    print(race)
+
 
     if race in['Human' or 'Effendal']:
         cp=40
