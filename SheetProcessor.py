@@ -81,21 +81,28 @@ def process_choices(dict,filepath):
                     choices['Bloodline'][name]=cost
 
             if cat=='basic':
+                print(dict['basic']['basic'])
                 for skill in skills['basic']['basic']:
                     try:
                         name=f'{skill} x{dict['basic']['basic'][skill]['Quant']}'
-                        cost=int(dict['basic']['basic'][skill]['Quant'])*dict['basic']['basic'][skill]['Cost']
+                        cost=dict['basic']['basic'][skill]['Quant']*skills['basic']['basic'][skill]['Cost']
                     except:
                         name=f'{skill} x0'
                         cost='N/A'
                     choices['basic'][name]=cost
         
         elif cat=='Gathering':
+            from SheetParse import legacylevels
+            print(legacylevels)
             dict_=dict[cat]['gathering']
             for skill in dict_:
+                leglev=legacylevels[skill]
                 reference=dict_[skill]
                 name=f'{skill}: Rank {reference['Quant']}'
-                cost=reference['Cost']
+                if leglev>0:
+                    name+=' (Legacy)'
+                cost=int(reference['Quant'])*4-int(leglev)
+
                 choices['Gathering'][name]=cost
 
         else:
