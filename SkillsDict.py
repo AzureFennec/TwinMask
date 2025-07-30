@@ -54,23 +54,23 @@ skills = {
         'features': {
             'Magical Aptitude': {'Max':1,'Cost':4,'Reliant':['Mana Focus','Weapon Casting','Armored Casting'],'cat':'background','subcat':'features'},
             'Prophetic Dreamer': {'Max':1,'Cost':4,'cat':'background','subcat':'features'},
-            'Nobility': {'Max':1,'Cost':6,'cat':'background','subcat':'features'},
-            'Military Experience': {'Max':1,'Cost':4,'cat':'background','subcat':'features'},
-            'Bardic Knowledge': {'Max':1,'Cost':4,'cat':'background','subcat':'features'},
-            'Extra Native Lore': {'Max':1,'Cost':4,'cat':'background','subcat':'features'}
+            'Nobility': {'Max':1,'Cost':6,'cat':'background','subcat':'features','Prereq':{'Check': lambda x: x!='Newborn Dream','Desc':'NBD'}},
+            'Military Experience': {'Max':1,'Cost':4,'cat':'background','subcat':'features','Prereq':{'Check': lambda x: x!='Newborn Dream','Desc':'NBD'}},
+            'Bardic Knowledge': {'Max':1,'Cost':4,'cat':'background','subcat':'features','Prereq':{'Check': lambda x: x!='Newborn Dream','Desc':'NBD'}},
+            'Extra Native Lore': {'Max':1,'Cost':4,'cat':'background','subcat':'features','Prereq':{'Check': lambda x: x!='Newborn Dream','Desc':'NBD'}}
         },
         'flaws': {
-            'Sovereign Zeal': {'Max':1,'Cost':-2,'cat':'background','subcat':'flaws'},
+            'Sovereign Zeal': {'Max':1,'Cost':-2,'cat':'background','subcat':'flaws','Prereq':{'Check': lambda x: x!='Newborn Dream','Desc':'NBD'}},
             'Religous Zeal': {'Max':1,'Cost':-2,'Prereq':{'Skill':'Religion','Check': lambda x: x != '','Desc':'special'},'cat':'background','subcat':'flaws'},
-            'Corrupted': {'Max':None,'Cost':-6,'cat':'background','subcat':'flaws'},
+            'Corrupted': {'Max':5,'Cost':-6,'cat':'background','subcat':'flaws','Prereq':{'Check': lambda x: x!='Newborn Dream','Desc':'NBD'}},
             'Frail': {'Max':4,'Cost':-3,'cat':'background','subcat':'flaws'},
             'Illiterate': {'Max':1,'Cost':-4,'cat':'background','subcat':'flaws'},
-            'Oatbound': {'Max':1,'Cost':-6,'cat':'background','subcat':'flaws'}
+            'Oathbound': {'Max':1,'Cost':-6,'cat':'background','subcat':'flaws','Prereq':{'Check': lambda x: x!='Newborn Dream','Desc':'NBD'}}
         },
         'memory flaws': {
-            'Clouded Memory': {'Max':1,'Cost':-2,'cat':'background','subcat':'memory flaws'},
-            'Fractued Memory': {'Max':1,'Cost':-4,'cat':'background','subcat':'memory flaws'},
-            'Fading Memory': {'Max':1,'Cost':-4,'cat':'background','subcat':'memory flaws'}
+            'Clouded Memory': {'Max':1,'Cost':-2,'cat':'background','subcat':'memory flaws','Prereq':{'Check': lambda x: x!='Newborn Dream','Desc':'NBD'}},
+            'Fractured Memory': {'Max':1,'Cost':-4,'cat':'background','subcat':'memory flaws','Prereq':{'Check': lambda x: x!='Newborn Dream','Desc':'NBD'}},
+            'Fading Memory': {'Max':1,'Cost':-4,'cat':'background','subcat':'memory flaws','Prereq':{'Check': lambda x: x!='Newborn Dream','Desc':'NBD'}}
         }
     },
     'basic': {
@@ -428,7 +428,7 @@ skills = {
                 'Prereq':{
                     'Skill': ['Salute'],
                     'Check': lambda x, y: any(i in y for i in x),
-                    'Desc': 'any'
+                    'Desc': 'all'
                 },
                 'cat':'General Skills',
                 'subcat':'The Art of Dueling'
@@ -824,7 +824,8 @@ skills = {
                 'Cost':4,
                 'Prereq':{
                     'Skill':['Priesthood: Rank 2','Priesthood: Rank 3','Priesthood: Rank 4'],
-                    'Check': lambda x,y:any(i in y for i in x)
+                    'Check': lambda x,y:any(i in y for i in x),
+                    'Desc': 'any'
                 },
                 'Reliant':['Tertiary Prayer'],
                 'cat':'General Skills',
@@ -835,7 +836,8 @@ skills = {
                 'Cost':4,
                 'Prereq':{
                     'Skill':['Secondary Prayer'],
-                    'Check': lambda x,y:all(i in y for i in x)
+                    'Check': lambda x,y:all(i in y for i in x),
+                    'Desc': 'all'
                 },
                 'cat':'General Skills',
                 'subcat':'Religious Worship'
@@ -851,7 +853,8 @@ skills = {
                 'Cost':6,
                 'Prereq':{
                     'Skill':['Prayer'],
-                    'Check': lambda x,y: all(i in y for i in x)
+                    'Check': lambda x,y: all(i in y for i in x),
+                    'Desc': 'all'
                 },
                 'cat':'General Skills',
                 'subcat':'Religious Worship'
