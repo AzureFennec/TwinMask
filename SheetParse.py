@@ -9,6 +9,15 @@ class CannotParseSheet(Exception):
 
 bloodlineprocessing=False
 
+legacylevels={
+    'Mining':0,
+    'Mercantile':0,
+    'Hunting':0,
+    'Black Market':0,
+    'Herbalism':0,
+    'Woodcutting':0
+}
+
 export={
     'details': {},
     'Bloodline': {},
@@ -97,8 +106,12 @@ cats={
 }
 
 def BuildExport(df):
+    #print(df)
     for skill in df:
         ref=df[skill]
+        if ref['cat']=='Gathering':
+            legacylevel=(int(ref['Quant'])*4)%(int(ref['Cost']))
+            legacylevels[skill]=legacylevel
         export[ref['cat']][ref['subcat']][skill]={'Quant':ref['Quant'],'Cost':ref['Cost'],'Level':ref['Level'],'Cat':ref['cat']}
 
 def BuildDF(df):
@@ -116,9 +129,19 @@ def BuildDF(df):
         if cat=='Crafting/Gathering':
             for i in range(len(catdf)):
                 if re.search(r'Rank', catdf.iloc[i-1,0]):
+                    item=catdf.iloc[i-1,0]
+                    item=item.replace(': Rank ',' x')
+                    catdf.iloc[i-1,0]=item
                     catdf.iloc[i-1,2]='Gathering'
                 else:
                     catdf.iloc[i-1,2]='Crafting'
+
+            
+            try:
+                catdf[['Skill','useless']]=catdf['Skill'].str.split('(', n=1, expand=True)
+                catdf.drop(columns='useless',inplace=True)
+            except ValueError:
+                pass
         
         dflist.append(catdf)
     choicedf=pd.concat(dflist)
