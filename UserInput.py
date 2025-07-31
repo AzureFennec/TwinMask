@@ -274,6 +274,8 @@ def RemoveSelection(self, skill, cat):
             widget.destroy()
         del self.selection_widgets[skill]
 
+    self.UpdateDisplay()
+
 def ErrorPopup(self,message):
     error_window = tk.Toplevel(self)
     error_window.title("Missing Information")
@@ -368,54 +370,6 @@ class tkinterApp(tk.Tk):
 
     def conclude(self):
         self.destroy()
-
-class LoadCharacter(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
-
-        button2 = ttk.Button(self, text="Excel", command=self.ImportExcel)
-        button2.grid(row=3, column=1, padx=10, pady=10)
-
-        button3 = ttk.Button(self, text="Google Sheets", command=self.ImportGSheet)
-        button3.grid(row=4, column=1, padx=10, pady=10)
-
-    def ImportExcel(self):
-        # Open file selection dialog
-        file = filedialog.askopenfilename(
-            title="Select an Excel file",
-            filetypes=(("Excel files", "*.xlsx"), ("All files", "*.*"))
-        )
-
-        if not file:
-            return  # User cancelled
-
-        if not file.endswith('.xlsx'):
-            message = 'Error: Not an excel file.'
-            ErrorPopup(self, message)
-            return
-
-        try:
-            df = BuildChar(file)
-        except NoCharacterSheet:
-            message = 'Error 1: Sheet does not have a page named "Character"\n\nPlease rename your character page.'
-            ErrorPopup(self, message)
-            return
-        
-        except CannotParseSheet:
-            message = 'Error 2: Unable to parse sheet. \n\nPlease ensure the character sheet is structured correctly.'
-            ErrorPopup(self, message)
-            return
-        
-        ImportChara(df)
-        global characterexists
-        characterexists = True
-        self.controller.initialize_nav_pages()
-        self.controller.show_frame(ChooseBackground)
-
-    def ImportGSheet(self):
-        message='Google Sheets import is currently unavailable.'
-        ErrorPopup(self,message)
 
 class LoadGSheet(tk.Frame):
     def __init__(self, parent, controller):
@@ -542,43 +496,131 @@ class NewCharacter(tk.Frame):
         self.controller.initialize_nav_pages()
         self.controller.show_frame(ChooseBackground)
 
+class LoadCharacter(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+
+        button2 = ttk.Button(self, text="Excel", command=self.ImportExcel)
+        button2.grid(row=3, column=1, padx=10, pady=10)
+
+        button3 = ttk.Button(self, text="Google Sheets", command=self.ImportGSheet)
+        button3.grid(row=4, column=1, padx=10, pady=10)
+
+    def ImportExcel(self):
+        # Open file selection dialog
+        file = filedialog.askopenfilename(
+            title="Select an Excel file",
+            filetypes=(("Excel files", "*.xlsx"), ("All files", "*.*"))
+        )
+
+        if not file:
+            return  # User cancelled
+
+        if not file.endswith('.xlsx'):
+            message = 'Error: Not an excel file.'
+            ErrorPopup(self, message)
+            return
+
+        try:
+            df = BuildChar(file)
+        except NoCharacterSheet:
+            message = 'Error 1: Sheet does not have a page named "Character"\n\nPlease rename your character page.'
+            ErrorPopup(self, message)
+            return
+        
+        except CannotParseSheet:
+            message = 'Error 2: Unable to parse sheet. \n\nPlease ensure the character sheet is structured correctly.'
+            ErrorPopup(self, message)
+            return
+        
+        ImportChara(df)
+        global characterexists
+        characterexists = True
+        self.controller.initialize_nav_pages()
+        self.controller.show_frame(ChooseBackground)
+
+    def ImportGSheet(self):
+        message='Google Sheets import is currently unavailable.'
+        ErrorPopup(self,message)
+
+class ChoosePrefix(tk.Frame): 
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        
+        prefixchars=['Shield Fighter', 'Raging Barbarian', 'Knife-Wielding Assassin','Stylish Duelist','Wandering Monk','Combat Healer',
+                     'Master Sorceror','Practiced Surgeon','Charismatic Courtier','Alchemical Merchant','Dream of Infinite Possibility']
+
+        row=1
+
+        for build in prefixchars:
+            add_button = ttk.Button(self, text=build, command=partial(self.LoadPrefix,prefixdict[build],build))
+            add_button.grid(row=row, column=8, padx=10, pady=10)
+            row+=1
+
+    def LoadPrefix(self,dict,build):
+        refpage=self.controller.frames[NewCharacter]
+        target=refpage.update_bloodline_options
+        if build!='Dream of Infinite Possibility':
+            target(['Human','Effendal'])
+        else:
+            target(['Newborn Dream'])
+        ImportChara(dict)
+        global characterexists
+        characterexists=True 
+        self.controller.show_frame(NewCharacter)
+
 class ChooseBackground(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller=controller
 
-        # Create header frame for the back button
         header=tk.Frame(self)
         header.grid(row=0, column=0, sticky="w", columnspan=5)
 
-        # Main content starts at row 1
+        row=1
         ttk.Label(self, text="Choose Background Skills", font=LARGEFONT).grid(
-            row=1, column=0, columnspan=5, padx=10, pady=10)
+            row=row, column=0, columnspan=5, padx=10, pady=10)
 
+        row+=1
         ttk.Label(self, text="This is the ChooseBackground page.\nMore content coming soon!", font=("Arial", 14)).grid(
-            row=2, column=0, columnspan=5, padx=10, pady=10)
+            row=row, column=0, columnspan=5, padx=10, pady=10)
 
-        categories=skills['background'].keys()
         self.entries={}
         self.cost_labels={}
         self.entry_rows={}
         self.selection_widgets=[]
         self.page='background'
 
-        start_row=4
+        categories=skills['background'].keys()
+        row+=2  # Skip a line
         ttk.Label(self, text='Quantity', font=("Arial", 10)).grid(
-            row=start_row-1, column=2, padx=5, pady=(0, 5), sticky="w")
+            row=row, column=2, padx=5, pady=(0, 5), sticky="w")
         ttk.Label(self, text='Cost', font=("Arial", 10)).grid(
-            row=start_row-1, column=3, padx=5, pady=(0, 5), sticky="w")
+            row=row, column=3, padx=5, pady=(0, 5), sticky="w")
 
-        for idx, field_name in enumerate(categories):
-            row=start_row+idx
+        row+=1
+        start_fields_row=row
+
+        for field_name in categories:
             self.entry_rows[field_name]=row
-
             ttk.Label(self, text=f"{field_name.capitalize()}:").grid(
                 row=row, column=0, padx=(5, 2), pady=5, sticky="e")
 
             options=list(skills['background'][field_name].keys())
+            bloodline=choices['details']['Bloodline']
+
+            if bloodline=='Newborn Dream':
+                if field_name=='flaws':
+                    rem=['Sovereign Zeal','Religious Zeal','Corrupted','Oathbound']
+                    options=[o for o in options if o not in rem]
+                if field_name=='features':
+                    rem=['Nobility','Military Experience','Bardic Knowledge','Extra Native Lore']
+                    options=[o for o in options if o not in rem]
+                if field_name=='memory flaws':
+                    options.clear()
+
             dropdown=ttk.Combobox(self, values=options, state="readonly")
             dropdown.grid(row=row, column=1, padx=(0, 2), pady=5, sticky="ew")
             dropdown.set(f"Choose {field_name}")
@@ -620,29 +662,26 @@ class ChooseBackground(tk.Frame):
             ttk.Button(self, text="Add", command=partial(self.capture_selection, field_name)).grid(
                 row=row, column=4, padx=(2, 5), pady=5, sticky="w"
             )
+            row+=1
 
-        ttk.Label(self, text="Selected").grid(row=row+1, column=0, columnspan=3, padx=10, pady=10)
-        self.selectedrow=row+2
+        ttk.Label(self, text="Selected").grid(row=row, column=0, columnspan=3, padx=10, pady=10)
+        self.selectedrow=row+1
 
         self.grid_columnconfigure(1, weight=0)
         self.grid_columnconfigure(2, weight=0)
 
         self.displayrow=8
         self.displalycol=1
-
         self.flawpoints=0
 
     def capture_selection(self,field_name):
-        # Loop through each field_name (category)
-        category = field_name  # category is the field name key
-        name = self.entries[field_name].get()  # selected skill name
+        category=field_name
+        name=self.entries[field_name].get()
 
-        cost_var, qty_var = self.cost_labels[field_name]
-        cost = cost_var.get()
-        quantity = qty_var.get()
-        cost=int(cost)*int(quantity)
+        cost_var, qty_var=self.cost_labels[field_name]
+        cost=int(cost_var.get())*int(qty_var.get())
 
-        choice = SkillChoice(name, cost, cat=field_name, page='background', quantity=quantity)
+        choice=SkillChoice(name, cost, cat=field_name, page='background', quantity=qty_var.get())
         self.choicedict=None
         ValidateSelection(self,choice)
         self.UpdateDisplay()
@@ -656,53 +695,51 @@ class ChooseBackground(tk.Frame):
             self.flawpoints+=cost
             if self.flawpoints<=-10:
                 self.flawpoints=-10
-                ttk.Label(self, text='Max Flaw Points Reached').grid(row=5, column=5, padx=10, pady=10)              
-        flawdisplay=ttk.Label(self, text=f'Flaw Points: {self.flawpoints}').grid(row=1, column=99, padx=10, pady=10)
-    
+                ttk.Label(self, text='Max Flaw Points Reached').grid(row=5, column=5, padx=10, pady=10)
+        ttk.Label(self, text=f'Flaw Points: {self.flawpoints}').grid(row=1, column=99, padx=10, pady=10)
+
     def UpdateDisplay(self):
-        DisplaySelection(self, row=8,column=0)
+        DisplaySelection(self, row=8, column=0)
 
 class ChooseBasics(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller=controller
         self.character=self.controller.character
-
-        # Data structures
-
         self.page='basic'
+        self.flawpoints=0
 
         # UI setup
         self.create_widgets()
 
-        self.flawpoints=0
-
     def create_widgets(self):
+        self.grid_columnconfigure(0, weight=1, uniform='a')
+        self.grid_columnconfigure(1, weight=1, uniform='a')
+        self.grid_columnconfigure(2, weight=1, uniform='a')
+        self.grid_columnconfigure(3, weight=1, uniform='a')
+
         # Title
         title=ttk.Label(self, text="Add Basic Skills", font=LARGEFONT)
-        title.grid(row=0, column=0, padx=10, pady=10)
+        title.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
 
         # Headers
-        ttk.Label(self, text="Skills").grid(row=1, column=0, padx=10, pady=10)
-        ttk.Label(self, text="Cost").grid(row=1, column=1, padx=10, pady=10)
-        ttk.Label(self, text="Quantity").grid(row=1, column=2, padx=10, pady=10)      
+        ttk.Label(self, text="Skills").grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        ttk.Label(self, text="Cost").grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        ttk.Label(self, text="Quantity").grid(row=1, column=2, padx=10, pady=10, sticky="w")
 
         row=2
         for skill, skilldata in skills['basic']['basic'].items():
             cost=skilldata['Cost']
             max_=skilldata['Max']
 
-            # Labels
-            ttk.Label(self, text=skill).grid(row=row, column=0, padx=10, pady=10)
+            ttk.Label(self, text=skill, anchor='w').grid(row=row, column=0, padx=10, pady=10, sticky='w')
             ttk.Label(self, text=cost).grid(row=row, column=1, padx=10, pady=10)
 
-            # Quantity combobox
             qty_values=[str(i) for i in range(0,51)] if max_ is None else [str(i) for i in range(0,6)]
             quant_cb=ttk.Combobox(self, values=qty_values, state="readonly", width=5)
             quant_cb.set(qty_values[0])
             quant_cb.grid(row=row, column=2, padx=10, pady=10)
 
-            # Add button
             addbutton=ttk.Button(
                 self, 
                 text="Add", 
@@ -712,13 +749,12 @@ class ChooseBasics(tk.Frame):
 
             row+=1
 
-        # Back button
         ttk.Button(self, text="<Back", command=lambda: self.controller.show_frame(ChooseBackground)).grid(
             row=row, column=0, columnspan=4, padx=10, pady=10)
 
     def capture_selection(self, skill, cost, quant_widget):
         quantity=quant_widget.get()
-        cost=cost*quantity
+        cost=int(cost)*int(quantity)
         choice=SkillChoice(skill, cost, cat='basic', page='basic', quantity=quantity)
         self.choicedict=None
         ValidateSelection(self, choice)
@@ -730,77 +766,66 @@ class ChooseBasics(tk.Frame):
 class ChooseRacial(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self.controller = controller  # ensure controller is stored
+        self.controller=controller
+        self.page='Bloodline'
+        self.bloodlineset=False
 
-        title=ttk.Label(self, text=f"Add Bloodline Skills", font=LARGEFONT)
+        title=ttk.Label(self, text="Add Bloodline Skills", font=LARGEFONT)
         title.grid(row=0, column=0, padx=10, pady=10)
 
         skillsheader=ttk.Label(self, text="Skills")
         skillsheader.grid(row=1, column=0, padx=10, pady=10)
 
-        costheader = ttk.Label(self, text="Cost")
+        costheader=ttk.Label(self, text="Cost")
         costheader.grid(row=1, column=1, padx=10, pady=10)
 
-        quantityheader=ttk.Label(self, text='Quantity')
+        quantityheader=ttk.Label(self, text="Quantity")
         quantityheader.grid(row=1, column=2, padx=10, pady=10)
 
-        self.page='Bloodline'
-
-        self.bloodlineset=False
-
-    def SetBloodline(self):
-        self.race=choices['details']['Bloodline']
-
-    def update_character(self):
         self.race=choices['details']['Bloodline']
         list_=list(skills['Bloodline'][self.race].keys())
-        self.selections={}
-        for skill in list_:
-            self.selections[skill]={'Quant':'','Cost':''}
-        skill_1=ttk.Label(self, text="Skills")
-        skill_1.grid(row=2, column=0, padx=10, pady=10)
-        row=2
-        column=0
-        for skill in list_:
-            skill_label=ttk.Label(self,text=skill)
-            skill_label.grid(row=row,column=column, padx=10, pady=10)
+        self.selections={skill:{'Quant':'','Cost':''} for skill in list_}
+
+        startrow=2
+        for i, skill in enumerate(list_):
+            row=startrow+i
+            column=0
+
+            skill_label=ttk.Label(self, text=skill)
+            skill_label.grid(row=row, column=column, padx=10, pady=10)
             column+=1
 
             cost=skills['Bloodline'][self.race][skill]['Cost']
-            cost_label=ttk.Label(self,text=cost)
-            cost_label.grid(row=row,column=column, padx=10, pady=10)
+            cost_label=ttk.Label(self, text=cost)
+            cost_label.grid(row=row, column=column, padx=10, pady=10)
             column+=1
 
             max_qty=skills['Bloodline'][self.race][skill]['Max']
             if max_qty==1:
-                qty_value = 1
-                quant_label=ttk.Label(self,text=qty_value)
-                quant_label.grid(row=row,column=column, padx=10, pady=10)
+                qty_value=1
+                quant_label=ttk.Label(self, text=qty_value)
+                quant_label.grid(row=row, column=column, padx=10, pady=10)
             else:
-                qty_values=[str(i) for i in range(0,51)]
+                qty_values=[str(i) for i in range(0, 51)]
                 quant_label=ttk.Combobox(self, values=qty_values, state="readonly", width=5)
-                quant_label.set(qty_values[0])  # default to 0
-                quant_label.grid(row=row,column=column, padx=10, pady=10)
+                quant_label.set(qty_values[0])
+                quant_label.grid(row=row, column=column, padx=10, pady=10)
 
-            # Create the add button with partial to pass these captured values
-            add_button = tk.Button(
+            add_button=tk.Button(
                 self,
                 text="Add",
                 command=partial(self.capture_choice, skill, cost, quant_label)
             )
-            add_button.grid(row=row,column=column+1, padx=10, pady=10)
-
-            column=0
-            row+=1
+            add_button.grid(row=row, column=column+1, padx=10, pady=10)
 
     def capture_choice(self, skill, cost, quant):
-        quant = quant.get() if isinstance(quant, ttk.Combobox) else 1
-        choice=SkillChoice(skill,cost,page='Bloodline',quantity=quant, cat=choices['details']['Bloodline'])
-        ValidateSelection(self,choice)
+        quant=quant.get() if isinstance(quant, ttk.Combobox) else 1
+        choice=SkillChoice(skill, cost, page='Bloodline', quantity=quant, cat=choices['details']['Bloodline'])
+        ValidateSelection(self, choice)
         self.UpdateDisplay()
 
     def UpdateDisplay(self):
-        DisplaySelection(self, row=10,column=0)
+        DisplaySelection(self, row=10, column=0)
 
 class ChooseSkills(tk.Frame):
     def __init__(self, parent, controller):
@@ -808,7 +833,8 @@ class ChooseSkills(tk.Frame):
         self.controller = controller
         self.page = 'General Skills'
 
-        row = 1
+        startrow = 1
+        row=startrow
 
         # ======= TOP CONTROLS FRAME =======
         top_controls = tk.Frame(self)
@@ -817,8 +843,7 @@ class ChooseSkills(tk.Frame):
         label = ttk.Label(top_controls, text="Choose Skills", font=LARGEFONT)
         label.grid(row=row, column=0, columnspan=5, padx=10, pady=10, sticky="n")
 
-        categories = list(skills['General Skills'].keys())
-        self.cat_dropdown = ttk.Combobox(top_controls, values=categories, state="readonly", width=15)
+        self.cat_dropdown = ttk.Combobox(top_controls, values=list(skills['General Skills'].keys()), state="readonly", width=15)
         self.cat_dropdown.set('pick category')
         self.cat_dropdown.grid(row=row+1, column=0, sticky="ew", padx=5)
 
@@ -826,8 +851,7 @@ class ChooseSkills(tk.Frame):
         self.option_dropdown.set('pick option')
         self.option_dropdown.grid(row=row+1, column=1, sticky="ew", padx=5)
 
-        # Fixed placeholder for quantity widget
-        self.qty_placeholder = tk.Frame(top_controls, width=60)  # enough space for a dropdown or label
+        self.qty_placeholder = tk.Frame(top_controls, width=60)
         self.qty_placeholder.grid(row=row+1, column=2, sticky="ew", padx=5)
         self.qty_widget = None
 
@@ -844,9 +868,9 @@ class ChooseSkills(tk.Frame):
         canvas.configure(yscrollcommand=scrollbar.set)
 
         canvas.grid(row=row+1, column=0, sticky="nsew")
-        scrollbar.grid(row=1, column=1, sticky="ns")
+        scrollbar.grid(row=startrow, column=1, sticky="ns")
 
-        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(startrow, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
         scrollable_frame = tk.Frame(canvas)
@@ -942,11 +966,14 @@ class AddMagic(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller  # store controller
 
-        label = ttk.Label(self, text="Add Magic", font=("Arial", 20))
-        label.grid(row=0, column=0, padx=10, pady=10, columnspan=2)
+        startrow=0
 
+        label = ttk.Label(self, text="Add Magic", font=("Arial", 20))
+        label.grid(row=startrow, column=0, padx=10, pady=10, columnspan=2)
+
+        startrow+=1
         placeholder = ttk.Label(self, text="Magic feature coming soon.", font=("Arial", 14))
-        placeholder.grid(row=1, column=0, padx=10, pady=10, columnspan=2)
+        placeholder.grid(row=startrow, column=0, padx=10, pady=10, columnspan=2)
 
         selectionheader = ttk.Label(self, text="Selected", font=("Arial", 14))
         selectionheader.grid(row=0, column=4, padx=10, pady=10, columnspan=3)
@@ -957,16 +984,18 @@ class AddMagic(tk.Frame):
         levelsubheader = ttk.Label(self, text="Level", font=("Arial", 14))
         levelsubheader.grid(row=1, column=6, padx=10, pady=10)
 
+        startrow+=1
         self.magic_dropdown = ttk.Combobox(self, values=skills['Magical Arts']['Magics']['Magics'], state="readonly", width=20)
         self.magic_dropdown.set('Select Magic')
-        self.magic_dropdown.grid(row=2, column=0, padx=10, pady=10)
+        self.magic_dropdown.grid(row=startrow, column=0, padx=10, pady=10)
 
         self.leveldropdown = ttk.Combobox(self, values=list(skills['Magical Arts']['Magics']['Levels'].keys()), state="readonly", width=20)
         self.leveldropdown.set('Select Level')
-        self.leveldropdown.grid(row=2, column=1, padx=10, pady=10)
+        self.leveldropdown.grid(row=startrow, column=1, padx=10, pady=10)
 
+        startrow+=1
         add_button = ttk.Button(self, text="Add", command=self.capture_entry)
-        add_button.grid(row=3, column=0, padx=10, pady=10, columnspan=2)
+        add_button.grid(row=startrow, column=0, padx=10, pady=10, columnspan=2)
         
         try:
             mana=allchoices['Mana Focus']['Quant']
@@ -978,9 +1007,9 @@ class AddMagic(tk.Frame):
 
         ttk.Button(self, text="<Back", command=lambda: controller.show_frame(ChooseSkills)).grid(
             row=10, column=0, columnspan=4, padx=10, pady=10)
-        
+
         self.page='Magical Arts'
-        
+
     def update_mana(self):
         try:
             mana = allchoices['Mana Focus']['Quant']
@@ -993,54 +1022,58 @@ class AddMagic(tk.Frame):
         level=self.leveldropdown.get()
         cost=levels[level]*6
 
-        
-        choice= SkillChoice(magic, cost, cat='Magics', page='Magical Arts', level=level)
+        choice=SkillChoice(magic, cost, cat='Magics', page='Magical Arts', level=level)
         self.choicedict=None
         ValidateSelection(self,choice)
         self.UpdateDisplay()
-    
+
     def UpdateDisplay(self):
-        DisplaySelection(self, row=5,column=3)
+        DisplaySelection(self, row=5, column=3)
 
 class AddCrafting(tk.Frame): 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        label = ttk.Label(self, text="Add Crafting", font=LARGEFONT)
-        label.grid(row=0, column=0, padx=10, pady=10)
+        startrow=0
 
+        label = ttk.Label(self, text="Add Crafting", font=LARGEFONT)
+        label.grid(row=startrow, column=0, padx=10, pady=10)
+
+        startrow+=1
         label = ttk.Label(self, text="Choose crafting")
-        label.grid(row=1, column=0, padx=10, pady=10)
+        label.grid(row=startrow, column=0, padx=10, pady=10)
 
         self.page='Crafting'
 
+        startrow+=1
         # headers...
         catheader = ttk.Label(self, text="Category", font=("Arial", 14))
-        catheader.grid(row=3, column=0, padx=10, pady=10)
+        catheader.grid(row=startrow, column=0, padx=10, pady=10)
         skillheader = ttk.Label(self, text="Skill", font=("Arial", 14))
-        skillheader.grid(row=3, column=1, padx=10, pady=10)
+        skillheader.grid(row=startrow, column=1, padx=10, pady=10)
         quantheader = ttk.Label(self, text="Quantity", font=("Arial", 14))
-        quantheader.grid(row=3, column=2, padx=10, pady=10)
+        quantheader.grid(row=startrow, column=2, padx=10, pady=10)
         costheader = ttk.Label(self, text="Cost", font=("Arial", 14))
-        costheader.grid(row=3, column=3, padx=10, pady=10)
+        costheader.grid(row=startrow, column=3, padx=10, pady=10)
 
+        startrow+=1
         categories = list(skills['Crafting'].keys())
         self.cat_dropdown = ttk.Combobox(self, values=categories, state="readonly", width=15)
         self.cat_dropdown.set('pick category')
-        self.cat_dropdown.grid(row=4, column=0, sticky="w")
+        self.cat_dropdown.grid(row=startrow, column=0, sticky="w")
 
         self.option_dropdown = ttk.Combobox(self, state="readonly", width=15)
         self.option_dropdown.set('pick option')
-        self.option_dropdown.grid(row=4, column=1, sticky="w")
+        self.option_dropdown.grid(row=startrow, column=1, sticky="w")
 
         self.cost_var = tk.StringVar(value="-")
         cost_label = ttk.Label(self, textvariable=self.cost_var)
-        cost_label.grid(row=4, column=3, sticky="w")
+        cost_label.grid(row=startrow, column=3, sticky="w")
 
         self.qty_widget = ttk.Combobox(self, values=('Apprentice','Journeyman','Master','Grandmaster'), state="readonly")
         self.qty_widget.set('pick option')
-        self.qty_widget.grid(row=4, column=2, sticky="w")
+        self.qty_widget.grid(row=startrow, column=2, sticky="w")
 
         self.cat_dropdown.bind("<<ComboboxSelected>>", self.update_options)
 
@@ -1053,7 +1086,7 @@ class AddCrafting(tk.Frame):
         self.addedskills = []
 
         add_button = ttk.Button(self, text="Add", command=self.capture_selection)
-        add_button.grid(row=4, column=8, padx=10, pady=10)
+        add_button.grid(row=startrow, column=8, padx=10, pady=10)
 
         page='Crafting'
 
@@ -1088,22 +1121,26 @@ class AddGathering(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
+        startrow=0
+
         label = ttk.Label(self, text="Add Gathering", font=LARGEFONT)
-        label.grid(row=0, column=0, padx=10, pady=10)
+        label.grid(row=startrow, column=0, padx=10, pady=10)
 
+        startrow+=1
         label = ttk.Label(self, text="Choose type and level")
-        label.grid(row=1, column=0, padx=10, pady=10)
+        label.grid(row=startrow, column=0, padx=10, pady=10)
 
+        startrow+=1
         categories=list(skills['Gathering']['gathering'].keys())
 
         self.skillsdropdown=ttk.Combobox(self, values=categories, state="readonly", width=15)
-        self.skillsdropdown.grid(row=2,column=0, sticky='w')
+        self.skillsdropdown.grid(row=startrow,column=0, sticky='w')
 
         self.levelsdropdown=ttk.Combobox(self, values=(1,2,3,4), state="readonly", width=15)
-        self.levelsdropdown.grid(row=2,column=1, sticky='w')
+        self.levelsdropdown.grid(row=startrow,column=1, sticky='w')
 
         addbutton=ttk.Button(self, text="Add",command=self.validateentry)
-        addbutton.grid(row=2,column=2, sticky='w')      
+        addbutton.grid(row=startrow,column=2, sticky='w')      
 
         self.addedskills = []
 
@@ -1129,6 +1166,8 @@ class AddKnowledge(tk.Frame):
         self.controller = controller
         self.page='Knowledge'
 
+        startrow=0
+
         dropdown_options=list(skills['Knowledge'].keys())
         global characterexists
         if characterexists is True:
@@ -1136,21 +1175,20 @@ class AddKnowledge(tk.Frame):
             skills[self.page]['Non-Starting Lore']={}
             choices[self.page]['Non-Starting Lore']={}
         
-
         # Category dropdown
         self.catdropdown=ttk.Combobox(self, values=dropdown_options, state="readonly")
         self.catdropdown.set("Select Knowledge Category")
-        self.catdropdown.grid(row=0, column=0, padx=10, pady=10)
+        self.catdropdown.grid(row=startrow, column=0, padx=10, pady=10)
         self.catdropdown.bind("<<ComboboxSelected>>", self.update_subdropdown)
 
+        startrow+=1
         # Subcategory dropdown (initially empty)
         self.subdropdown=ttk.Combobox(self, values=[], state="readonly")
         self.subdropdown.set("Select Specific Knowledge")
-        self.subdropdown.grid(row=1, column=0, padx=10, pady=10)
+        self.subdropdown.grid(row=startrow, column=0, padx=10, pady=10)
 
-        # Add button
         add_button=tk.Button(self, text="Add", command=self.capture_selection)
-        add_button.grid(row=1, column=1, padx=10, pady=10)
+        add_button.grid(row=startrow, column=1, padx=10, pady=10)
 
     def update_subdropdown(self, event):
         selected_cat=self.catdropdown.get()
@@ -1163,18 +1201,19 @@ class AddKnowledge(tk.Frame):
             self.lore_label.destroy()
             del self.lore_label
 
+        startrow=3
+
         if selected_cat == 'Non-Starting Lore':
             self.subdropdown.grid_forget()
             self.lore_label = tk.Label(self, text="Lore:")
-            self.lore_label.grid(row=3, column=0, padx=5, pady=5, sticky="w")
+            self.lore_label.grid(row=startrow, column=0, padx=5, pady=5, sticky="w")
             self.lore_entry = tk.Text(self, height=4, width=30)
-            self.lore_entry.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+            self.lore_entry.grid(row=startrow, column=1, padx=5, pady=5, sticky="w")
         elif selected_cat in skills['Knowledge']:
-            self.subdropdown.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky="w")
+            self.subdropdown.grid(row=startrow, column=0, columnspan=2, padx=5, pady=5, sticky="w")
             new_options = list(skills['Knowledge'][selected_cat].keys())
             self.subdropdown['values'] = new_options
             self.subdropdown.set("Select Specific Knowledge")
-
         else:
             self.subdropdown.grid_forget()
 
@@ -1203,9 +1242,11 @@ class ReviewChoices(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
+        startrow = 0
+
         # ======= TOP CONTROLS FRAME =======
         top_controls = tk.Frame(self)
-        top_controls.grid(row=0, column=0, sticky="ew")
+        top_controls.grid(row=startrow, column=0, sticky="ew")
 
         add_button = ttk.Button(top_controls, text="Create Character", command=self.TestFunc)
         add_button.configure(style="Bold.TButton")
@@ -1222,10 +1263,10 @@ class ReviewChoices(tk.Frame):
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        canvas.grid(row=1, column=0, sticky="nsew")
-        scrollbar.grid(row=1, column=1, sticky="ns")
+        canvas.grid(row=startrow + 1, column=0, sticky="nsew")
+        scrollbar.grid(row=startrow + 1, column=1, sticky="ns")
 
-        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(startrow + 1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
         scrollable_frame = tk.Frame(canvas)
@@ -1242,7 +1283,7 @@ class ReviewChoices(tk.Frame):
 
         global choices
 
-        row = 1  # Start from row 1
+        startrow = 1  # Start from row 1 inside scrollable_frame
         max_columns = 1  # Track the longest column span for consistent separators
 
         for cat in choices:
@@ -1273,7 +1314,7 @@ class ReviewChoices(tk.Frame):
                 max_columns = num_columns
 
             # === Calculate center row for category label ===
-            center_row = row + (max_skill_rows // 2)
+            center_row = startrow + (max_skill_rows // 2)
 
             # === Display category label centered ===
             label = ttk.Label(self.scrollable_frame, text=cat)
@@ -1282,30 +1323,29 @@ class ReviewChoices(tk.Frame):
             # === Display subcategories horizontally starting at top row ===
             if subcats == []:
                 label = ttk.Label(self.scrollable_frame, text='None selected')
-                label.grid(row=row, column=1, padx=10, pady=10)
+                label.grid(row=startrow, column=1, padx=10, pady=10)
             else:
                 for i, subcat in enumerate(subcats):
                     col = i + 1  # start from column 1 since column 0 is category
 
                     # Subcategory label at top row of the section
                     label = ttk.Label(self.scrollable_frame, text=subcat, font=("Arial", 10, 'bold'))
-                    label.grid(row=row, column=col, padx=10, pady=10)
+                    label.grid(row=startrow, column=col, padx=10, pady=10)
 
                     # Skills listed below subcategory
-                    skill_row = row + 1
+                    skill_row = startrow + 1
                     for skill in ref[subcat]:
                         label = ttk.Label(self.scrollable_frame, text=skill, font=("Arial", 8))
                         label.grid(row=skill_row, column=col, padx=10, pady=2)
                         skill_row += 1
 
             # === Move row down by max_skill_rows + 1 for spacing ===
-            row += max_skill_rows + 1
+            startrow += max_skill_rows + 1
 
             # === Insert separator line with consistent length ===
             separator = ttk.Separator(self.scrollable_frame, orient='horizontal')
-            separator.grid(row=row, column=0, columnspan=max_columns, sticky="ew", pady=5)
-            row += 1  # Move to the next row after separator
-
+            separator.grid(row=startrow, column=0, columnspan=max_columns, sticky="ew", pady=5)
+            startrow += 1  # Move to the next row after separator
 
     def TestFunc(self):
         choices['Knowledge']['Native Lore'][f"Native Lore: {choices['details']['Culture']}"]={'Quant':1,'Cost':0,'Level':None,'Cat':'Knowledge'}
@@ -1314,33 +1354,6 @@ class ReviewChoices(tk.Frame):
 
         process_choices(choices, filepath)
 
-class ChoosePrefix(tk.Frame): 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
-        
-        prefixchars=['Shield Fighter', 'Raging Barbarian', 'Knife-Wielding Assassin','Stylish Duelist','Wandering Monk','Combat Healer',
-                     'Master Sorceror','Practiced Surgeon','Charismatic Courtier','Alchemical Merchant','Dream of Infinite Possibility']
-
-        row=1
-
-        for build in prefixchars:
-            add_button = ttk.Button(self, text=build, command=partial(self.LoadPrefix,prefixdict[build],build))
-            add_button.grid(row=row, column=8, padx=10, pady=10)
-            row+=1
-
-    def LoadPrefix(self,dict,build):
-        refpage=self.controller.frames[NewCharacter]
-        target=refpage.update_bloodline_options
-        if build!='Dream of Infinite Possibility':
-            target(['Human','Effendal'])
-        else:
-            target(['Newborn Dream'])
-        ImportChara(dict)
-        global characterexists
-        characterexists=True 
-        self.controller.show_frame(NewCharacter)
-
 flawpoints=0
 characterexists=False
 
@@ -1348,3 +1361,6 @@ def StartApp():
     characterexists=False
     app = tkinterApp()
     app.mainloop()
+
+if __name__=='__main__':
+    StartApp()
